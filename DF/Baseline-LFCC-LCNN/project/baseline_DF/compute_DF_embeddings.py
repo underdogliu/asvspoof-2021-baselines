@@ -120,8 +120,8 @@ def main():
     # nii_nn_wrapper.f_inference_wrapper(args, model, device, test_set, checkpoint)
     # # done
 
-    srcdir = sys.argv[1]
-    tardir = sys.argv[2]
+    srcdir = "/media/hdd2/sahid/track4/data_v2/ASVspoof2021_DF_eval/flac/"
+    tardir = "asvspoof2021_df_lcnn_embeddings"
     os.makedirs(tardir + "/npys", exist_ok=True)
 
     flac_files = glob.glob(srcdir + "/*.flac")
@@ -130,6 +130,8 @@ def main():
     with torch.no_grad():
         for flac_path in flac_files:
             x, _ = sf.read(flac_path)
+            x = torch.Tensor(x).unsqueeze(0)
+            x = x.cuda()
             utt = os.path.basename(flac_path).split(".")[0]
             embed_x = model.compute_embedding(x)
             embed_x = embed_x.cpu().numpy()

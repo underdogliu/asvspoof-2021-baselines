@@ -413,11 +413,12 @@ class Model(torch_nn.Module):
 
     def compute_embedding(self, x):
         # buffer to store output scores from sub-models
-        output_emb = torch.zeros(
-            [1 * self.v_submodels, self.v_emd_dim],
-            device=x.device,
-            dtype=x.dtype,
-        )
+        #output_emb = torch.zeros(
+        #    [1 * self.v_submodels, self.v_emd_dim],
+        #    device=x.device,
+        #    dtype=x.dtype,
+        #)
+        output_emb = []
 
         # compute scores for each sub-models
         for idx, (fs, fl, fn, trunc_len, m_trans, m_be_pool, m_output) in enumerate(
@@ -432,7 +433,7 @@ class Model(torch_nn.Module):
             )
         ):
             # extract front-end feature
-            x_sp_amp = self._front_end(x, idx, trunc_len)
+            x_sp_amp = self._front_end(x, idx, trunc_len, 1)
 
             # compute scores
             #  1. unsqueeze to (batch, 1, frame_length, fft_bin)
@@ -451,9 +452,13 @@ class Model(torch_nn.Module):
             hidden_features_lstm = m_be_pool(hidden_features)
 
             #  5. pass through the output layer
-            tmp_emb = m_output((hidden_features_lstm + hidden_features).mean(1))
+            #tmp_emb = m_output((hidden_features_lstm + hidden_features).mean(1))
+            tmp_emb = (hidden_features_lstm + hidden_features).mean(1)
 
-            output_emb[idx * 1 : (idx + 1) * 1] = tmp_emb
+            #output_emb[idx * 1 : (idx + 1) * 1] = tmp_emb
+            output_emb.append(tmp_emb)
+
+        output_emb = torch.cat(output_emb, -1)
         return output_emb.squeeze()
 
 
